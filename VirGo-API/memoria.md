@@ -6,12 +6,12 @@ Bitácora oficial del proyecto (Art. X de [`constitution.md`](constitution.md)).
 
 | Campo | Valor |
 |---|---|
-| Constitución | v1.1.0 **propuesta** (pendiente de aprobación del equipo) |
-| Módulo en curso | `000-arquitectura-base` en revisión; `001`–`004` en borrador. Ninguna tarea ejecutada |
-| Tareas | 0 hechas (`000`: 23 vigentes · `001`: 11 · `002`: 17 · `003`: 13 · `004`: 9 · `007`: 2 de 7) |
+| Constitución | v1.2.0 ratificada el 2026-11-04 |
+| Módulo en curso | Vertical slice local de `003`–`009`; validación cloud y despliegue pendientes |
+| Tareas | Implementación local: 7 endpoints, 23 pruebas automatizadas aprobadas |
 | URL de producción | Pendiente (se obtiene en `002`: T209) |
 | Costo acumulado en AWS | $0 USD (todavía no se crea ningún recurso) |
-| Siguiente paso | Evaluación del 2026-11-04: aprobar la enmienda v1.1.0 y los specs `000`–`004` |
+| Siguiente paso | Cerrar el merge, actualizar el PR #5 y preparar validación IaC/cloud sin crear recursos aún |
 
 ## Módulos
 
@@ -196,3 +196,41 @@ Bitácora oficial del proyecto (Art. X de [`constitution.md`](constitution.md)).
 - **Costo:** $0.
 - **Aprendizaje (5 porqués):** la causa raíz fue que nada comparaba los documentos con la realidad; `verificar-constitucion` ahora lo exige.
 - **Pendiente:** `007` P-01 a P-05 (T701), T700 y T704; D5 (Redis y colas) y D6 (Pact y pruebas de base de datos) con el profesor; revisión de otra persona antes de aprobar v1.1.0.
+
+### 2026-11-05 · Vertical slice y alineación con el esquema versionado
+
+- **Autor:** equipo + OpenCode (`dev-dotnet`)
+- **Módulo / tareas:** `003`–`009` · PR #5
+- **Qué se hizo:**
+  - Se implementaron siete endpoints de autenticación, perfil, catálogo, cotizaciones y reservaciones con persistencia en memoria y MongoDB.
+  - Se incorporó `db/schema/` desde `main` como contrato versionado y se ajustaron `users`, `quotes` y `bookings` para respetar campos requeridos y propiedades opcionales.
+  - Se resolvió el merge de `origin/main` en la rama `feat/vertical-slice-7-apis` y se publicó el resultado en el PR #5.
+- **Evidencia:** `dotnet build VirGo.slnx -c Release --no-restore -warnaserror` sin advertencias; `dotnet test VirGo.slnx -c Release`: 28 pruebas aprobadas (2 unitarias, 23 integración, 3 seguridad).
+- **Costo:** $0; no se crearon recursos AWS ni Atlas.
+- **Pendiente:** ejecutar `db/tools/check_schema.py` cuando Python esté disponible; completar la validacion live contra Atlas y el despliegue autorizado.
+
+### 2026-11-05 · Revisión del PR y corrección de bloqueos
+
+- **Autor:** equipo + OpenCode (`qa`, `seguridad`)
+- **Módulo / tareas:** `003`, `009`, `002` · PR #5
+- **Qué se corrigió:**
+  - Se implementó idempotencia persistida para reservaciones mediante `idempotencyKey` y un índice único por cliente.
+  - Se agregó bloqueo de cuenta tras cinco fallos consecutivos, con respuesta 429 y `Retry-After` en el siguiente intento.
+  - Se alinearon validaciones de entrada con los límites de `db/schema/`, se eliminó la clave JWT de `appsettings.json` y se corrigió la validación de sesión/correlación señalada por CodeQL.
+  - Se corrigieron CloudFormation, CORS, la ruta del template generado en el despliegue y los gates de esquema/dependencias del CI.
+- **Evidencia local:** build estricto sin advertencias; 19 pruebas de integración, 2 unitarias y 3 de seguridad aprobadas.
+- **Pendiente:** confirmar los nuevos checks remotos de CodeQL, IaC, esquema y seguridad; no hacer merge sin aprobación humana.
+
+### 2026-11-05 · Correcciones de contrato y pruebas del vertical slice
+
+- **Autor:** equipo + OpenCode (`dev-dotnet`, `qa`)
+- **Módulo / tareas:** `005`–`009` · PR #5
+- **Qué se corrigió:**
+  - Se rechazaron elementos nulos en servicios de cotizacion y se diferenciaron errores `400` de venues inexistentes `404`.
+  - El catalogo local usa categorias y amenities permitidos por `db/schema/venues.json`.
+  - Las reservaciones respetan `price.unit` y `minHours`, calculan el anticipo por defecto al 30% y rechazan importes fuera de rango.
+  - Se agregaron pruebas de validacion, autenticacion, filtros, fecha, venue inexistente, payload nulo, importe invalido y concurrencia de idempotencia.
+  - Se versiono `API-HANDOFF.md` como snapshot auditable del contrato citado por los specs.
+- **Evidencia:** `dotnet test VirGo.slnx -c Release`: 35 pruebas aprobadas (30 integracion, 2 unitarias, 3 seguridad); CI remoto previo verde para build, esquema, IaC, mutacion, CodeQL, Gitleaks y dependency review.
+- **Costo:** $0; no se crearon recursos AWS ni Atlas.
+- **Pendiente:** persistencia live contra Atlas, prueba de humo HTTPS, OIDC y aprobacion humana del PR; no hacer merge automaticamente.

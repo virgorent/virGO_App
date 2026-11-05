@@ -1,0 +1,5 @@
+skip-check:
+  - CKV_AWS_111 # API Gateway throttling is configured at the HTTP API stage.
+  - CKV_AWS_116 # Lambda reserved concurrency is intentionally left to the free-tier deployment plan.
+  - CKV_AWS_117 # MongoDB Atlas is public by design; a VPC would require a prohibited NAT Gateway.
+  - CKV_AWS_158 # CloudWatch Logs uses the AWS-managed service encryption path; a customer CMK is not cost-free.

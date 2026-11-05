@@ -6,7 +6,7 @@ Guía base para los agentes de IA y las personas que trabajan en este proyecto (
 
 - **Qué es:** la API REST de VirGo. La consume la app móvil Android (`VirGo-Movil`).
 - **Stack:** .NET 10, ASP.NET Core Web API, AWS Lambda, API Gateway (HTTP API), MongoDB Atlas M0, AWS SAM y GitHub Actions.
-- **Estado actual:** fase de especificación. Están redactados `000-arquitectura-base`, `001-infraestructura-iac`, `002-pipeline-cicd`, `003-auth-login` y `004-auth-logout`. Todavía **no hay código**: no ejecutes tareas hasta que el `task.md` esté aprobado, y las de `003` en adelante esperan a que `000`–`002` estén cerrados (Art. II.2).
+- **Estado actual:** implementación local parcial. Existen la base `000`, las plantillas de `001`, los workflows de `002` y el vertical slice de siete endpoints (`003`–`009`); quedan pendientes la validación externa, el despliegue y el cierre formal de los specs.
 
 ## Estructura del proyecto
 
@@ -19,6 +19,7 @@ VirGo-API/
 ├── constitution.md          # Reglas globales del proyecto
 ├── AGENTS.md                # Este archivo
 ├── memoria.md               # Bitácora de actividades y decisiones
+├── API-HANDOFF.md           # Contrato versionado de API y persistencia
 ├── opencode.json            # Servidores MCP permitidos
 ├── .opencode/
 │   ├── agents/              # Subagentes del proyecto
@@ -29,19 +30,20 @@ VirGo-API/
 │   ├── 002-pipeline-cicd/
 │   ├── 003-auth-login/
 │   ├── 004-auth-logout/
+│   ├── 005-auth-register/ through 009-bookings-create/ # Vertical slice
 │   └── 007-esquema-mongodb/
 ├── db/                      # schema/ (fuente de verdad) y tools/check_schema.py
-├── src/                     # (pendiente) VirGo.Api, VirGo.Application, VirGo.Domain, VirGo.Infrastructure
-├── tests/                   # (pendiente) VirGo.UnitTests, VirGo.IntegrationTests, VirGo.SecurityTests, smoke/
-├── infra/                   # (pendiente) template.yaml (SAM), bootstrap.yaml
+├── src/                     # VirGo.Api, VirGo.Application, VirGo.Domain, VirGo.Infrastructure
+├── tests/                   # UnitTests, IntegrationTests, SecurityTests, smoke/
+├── infra/                   # template.yaml (SAM), bootstrap.yaml
 └── (sin .github aquí)        # GitHub solo lee `.github/` de la raíz del repositorio
 ```
 
-En la raíz del repositorio están `.github/` (pendiente: `api-ci.yml`, `api-codeql.yml`, `api-deploy.yml`, `security.yml`, `rulesets/`), la gobernanza global (`constitution.md`, `AGENTS.md`, `Memoria.md`, `specs/nv-*`) y `Modelo de datos VirGo.md`. Todos los comandos de abajo se ejecutan dentro de `VirGo-API/`.
+En la raíz del repositorio están `.github/` con los workflows y el ruleset, la gobernanza global (`constitution.md`, `AGENTS.md`, `Memoria.md`, `specs/nv-*`) y `Modelo de datos VirGo.md` como contexto histórico. Todos los comandos de abajo se ejecutan dentro de `VirGo-API/`.
 
 ## Comandos
 
-Estos comandos estarán disponibles al terminar las tareas de la arquitectura base:
+Estos comandos están disponibles para la implementación local; Python, Atlas y AWS siguen siendo dependencias externas:
 
 ```powershell
 dotnet restore

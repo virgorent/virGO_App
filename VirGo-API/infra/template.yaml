@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: VirGo API serverless application.
+
+Parameters:
+  JwtSigningKeyParameter:
+    Type: String
+    Default: /virgo/prod/jwt-signing-key
+  MongoUriParameter:
+    Type: String
+    Default: /virgo/prod/mongo-uri
+  AlertEmail:
+    Type: String
+
+Globals:
+  Function:
+    Runtime: dotnet10
+    Architectures:
+      - arm64
+    MemorySize: 512
+    Timeout: 15
+    Environment:
+      Variables:
+        ASPNETCORE_ENVIRONMENT: Production
+        Persistence__Provider: MongoDb
+        Persistence__DatabaseName: virgo
+        Jwt__SigningKey: !Sub '{{resolve:ssm-secure:${JwtSigningKeyParameter}}}'
+        Persistence__ConnectionString: !Sub '{{resolve:ssm-secure:${MongoUriParameter}}}'
+
+Resources:
+  VirGoHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowCredentials: false
+        AllowHeaders:
+           - content-type
+           - authorization
+           - x-correlation-id
+           - idempotency-key
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        AllowOrigins:
+          - https://virgo.example.invalid
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 40
+        ThrottlingRateLimit: 20
+      AccessLogSettings:
+        DestinationArn: !GetAtt VirGoHttpApiAccessLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","sourceIp":"$context.identity.sourceIp","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","routeKey":"$context.routeKey","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength"}'
+
+  VirGoHttpApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/apigateway/virgo-api-prod
+      RetentionInDays: 7
+
+  VirGoApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: virgo-api-prod
+      CodeUri: ../src/VirGo.Api/
+      Handler: VirGo.Api
+      ReservedConcurrentExecutions: 10
+      KmsKeyArn: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/lambda
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref VirGoHttpApi
+
+  VirGoApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/virgo-api-prod
+      RetentionInDays: 7
+
+  VirGoAlerts:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: virgo-alerts
+      KmsMasterKeyId: alias/aws/sns
+
+  VirGoAlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref VirGoAlerts
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: VirGo API Gateway returned a 5xx response.
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref VirGoHttpApi
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref VirGoAlerts
+
+  LambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: VirGo Lambda returned an error.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref VirGoApiFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref VirGoAlerts
+
+Outputs:
+  ApiUrl:
+    Description: HTTPS URL of the API Gateway HTTP API.
+    Value: !Sub https://${VirGoHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}

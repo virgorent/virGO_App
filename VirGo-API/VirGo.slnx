@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VirGo.Api/VirGo.Api.csproj" />
+    <Project Path="src/VirGo.Application/VirGo.Application.csproj" />
+    <Project Path="src/VirGo.Domain/VirGo.Domain.csproj" />
+    <Project Path="src/VirGo.Infrastructure/VirGo.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VirGo.IntegrationTests/VirGo.IntegrationTests.csproj" />
+    <Project Path="tests/VirGo.SecurityTests/VirGo.SecurityTests.csproj" />
+    <Project Path="tests/VirGo.UnitTests/VirGo.UnitTests.csproj" />
+  </Folder>
+</Solution>

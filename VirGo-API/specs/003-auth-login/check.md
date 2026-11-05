@@ -5,7 +5,7 @@ Lista de verificación del módulo (Art. I.4). Cada casilla lleva su evidencia. 
 | Campo | Valor |
 |---|---|
 | Módulo | `003-auth-login` · `POST /api/v1/auth/login` |
-| Estado del spec | Borrador |
+| Estado del spec | Implementación local; despliegue pendiente |
 | Revisó | — |
 | Fecha de cierre | — |
 
@@ -14,20 +14,20 @@ Lista de verificación del módulo (Art. I.4). Cada casilla lleva su evidencia. 
 - [ ] El spec es atómico: solo el login (sin registro, renovación ni logout).
 - [ ] Cada RF y cada CA están cubiertos en la matriz de trazabilidad.
 - [ ] El Constitution Check del plan no tiene ❌.
-- [ ] P-01 (bloqueo) y P-02 (campos en el modelo de datos) respondidas.
+- [ ] P-01 (bloqueo) respondida; los campos se verifican contra `API-HANDOFF.md` y `VirGo-Database`.
 - [ ] Los MCP `mongodb` y `github` responden (T300).
 
 ## 2. Criterios de aceptación
 
 | CA | Evidencia | Estado |
 |---|---|---|
-| CA-01 200 con tokens y datos básicos | Prueba de integración `Login_ValidCredentials_Returns200` | ⏳ |
-| CA-02 Correo con mayúsculas o espacios | Prueba de integración | ⏳ |
-| CA-03 Contraseña incorrecta → 401 genérico | Prueba de integración | ⏳ |
-| CA-04 Correo inexistente → mismo 401 | Prueba de seguridad (cuerpos idénticos salvo `traceId`) | ⏳ |
-| CA-05 Bloqueo al sexto intento → 429 | Prueba de integración | ⏳ |
-| CA-06 Datos inválidos → 400 con `errors` | Prueba de integración | ⏳ |
-| CA-07 Sesión creada; token no en texto plano | Prueba de integración y consulta con el MCP `mongodb` | ⏳ |
+| CA-01 200 con tokens y datos básicos | `AuthTests.LoginThenLogoutInvalidatesOnlyThatSession` | ✅ |
+| CA-02 Correo con mayúsculas o espacios | `AuthTests.LoginNormalizesEmailCaseAndWhitespace` | ✅ |
+| CA-03 Contraseña incorrecta → 401 genérico | `AuthTests.UnknownEmailReturnsGenericUnauthorizedResponse` | ✅ |
+| CA-04 Correo inexistente → mismo 401 | `AuthTests.UnknownEmailReturnsGenericUnauthorizedResponse`; comparación con contraseña incorrecta pendiente | 🔄 |
+| CA-05 Límite por IP → 429 | `RateLimitTests.SecondRequestInWindowReturnsProblemDetails429` | ✅ |
+| CA-06 Datos inválidos → 400 con `errors` | `AuthTests.LoginRejectsInvalidInputWithFieldErrors` | ✅ |
+| CA-07 Sesión creada; token no en texto plano | Login/logout de integración; inspección MCP pendiente | 🔄 |
 | CA-08 Sin datos sensibles en logs | Prueba de seguridad con logger de prueba | ⏳ |
 | CA-09 Humo 401 por HTTPS | Resumen de `api-deploy.yml` | ⏳ |
 
@@ -35,10 +35,10 @@ Lista de verificación del módulo (Art. I.4). Cada casilla lleva su evidencia. 
 
 | Tipo | Evidencia | Estado |
 |---|---|---|
-| Unitarias | Totales: — aprobadas / — fallidas | ⏳ |
-| Integración | Totales: — aprobadas / — fallidas | ⏳ |
-| Seguridad | Totales: — · Revisión de `seguridad` sin hallazgos altos | ⏳ |
-| Mutación | Puntaje: — % (umbral — %) · Sobrevivientes en el bloqueo: 0 | ⏳ |
+| Unitarias | 2 aprobadas / 0 fallidas | ✅ |
+| Integración | 12 aprobadas / 0 fallidas | ✅ |
+| Seguridad | 2 aprobadas · Revisión de `seguridad` pendiente | 🔄 |
+| Mutación | Línea base: 36.36 % · umbral 0 % provisional | 🔄 |
 | Humo | Caso de login en `smoke.sh` en verde | ⏳ |
 | Validación de longitudes | `email`, `password` y `device`: límite, límite + 1 y 1500 caracteres | ⏳ |
 

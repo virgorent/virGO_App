@@ -1,0 +1,51 @@
+name: API Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: VirGo-API
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: 10.0.x
+      - uses: aws-actions/setup-sam@341eee193f458fa5aae5d52c94b0c5cf3a1c5a52
+        with:
+          use-installer: true
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+      - name: Build SAM application
+        run: sam build --template-file infra/template.yaml
+      - name: Require alert email
+        env:
+          ALERT_EMAIL: ${{ vars.ALERT_EMAIL }}
+        run: test -n "$ALERT_EMAIL"
+      - name: Deploy SAM application
+        env:
+          ALERT_EMAIL: ${{ vars.ALERT_EMAIL }}
+        run: sam deploy --template-file .aws-sam/build/template.yaml --config-file infra/samconfig.toml --parameter-overrides "AlertEmail=${ALERT_EMAIL}" --no-confirm-changeset --no-fail-on-empty-changeset
+      - name: Read API URL
+        id: stack
+        run: |
+          url="$(aws cloudformation describe-stacks --stack-name virgo-api-prod --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' --output text)"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Smoke test
+        run: bash tests/smoke/smoke.sh "${{ steps.stack.outputs.url }}"
+      - name: Publish summary
+        run: |
+          echo "## VirGo API deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: ${{ steps.stack.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"

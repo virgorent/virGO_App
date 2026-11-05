@@ -4,9 +4,9 @@
 |---|---|
 | Módulo | `001-infraestructura-iac` |
 | Versión | 1.0.0 |
-| Estado | Borrador |
+| Estado | Implementación local; validación y despliegue pendientes |
 | Fecha | 2026-11-03 |
-| Constitución | v1.1.0. Aplica sobre todo V, VII, IX y XI |
+| Constitución | v1.2.0. Aplica sobre todo V, VII, IX y XI |
 | Plan | [plan.md](plan.md) · Tareas: [task.md](task.md) · Verificación: [check.md](check.md) |
 | Origen | Se separó de `000-arquitectura-base` (antes F4, T030 y T034) para que la infraestructura sea un spec atómico (Art. I.5) |
 
@@ -71,7 +71,7 @@ El objetivo de este módulo es dejar descrita, validada y lista para desplegar t
 ## 6. Fuera de alcance
 
 - Los workflows de GitHub Actions y el ruleset (van en `002-pipeline-cicd`).
-- Las colecciones e índices de cada entidad (los define el plan de cada endpoint, por ejemplo `003-auth-login`, y los crea la aplicación).
+- Las colecciones, validadores e índices los administra `VirGo-Database`; la API solo consume el contrato existente y no ejecuta DDL al arrancar.
 - Dominio propio, CDN, WAF, ambientes adicionales (*staging*) y respaldos programados.
 
 ## 7. Supuestos, dependencias y preguntas abiertas

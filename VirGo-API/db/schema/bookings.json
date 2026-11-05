@@ -38,6 +38,10 @@
           "bsonType": "string",
           "maxLength": 100
         },
+        "idempotencyKey": {
+          "bsonType": "string",
+          "maxLength": 128
+        },
         "eventId": {
           "bsonType": "string",
           "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
@@ -212,6 +216,17 @@
         "date": 1
       },
       "options": {}
+    },
+    {
+      "name": "clientId_1_idempotencyKey_1_unique",
+      "key": {
+        "clientId": 1,
+        "idempotencyKey": 1
+      },
+      "options": {
+        "unique": true,
+        "sparse": true
+      }
     }
   ]
 }

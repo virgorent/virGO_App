@@ -4,10 +4,10 @@
 |---|---|
 | Módulo | `002-pipeline-cicd` |
 | Versión | 1.0.0 |
-| Estado | Borrador |
+| Estado | Implementación local; ejecución en GitHub pendiente |
 | Fecha | 2026-11-03 |
 | Spec | [spec.md](spec.md) · Tareas: [task.md](task.md) · Verificación: [check.md](check.md) |
-| Constitución | v1.1.0 |
+| Constitución | v1.2.0 |
 
 ## 1. Resumen técnico
 

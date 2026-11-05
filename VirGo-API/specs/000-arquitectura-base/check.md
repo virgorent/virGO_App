@@ -5,14 +5,14 @@ Lista de verificación del módulo (Art. I.4). Cada casilla lleva su evidencia. 
 | Campo | Valor |
 |---|---|
 | Módulo | `000-arquitectura-base` |
-| Estado del spec | En revisión |
+| Estado del spec | Implementación local; cierre pendiente |
 | Revisó | — |
 | Fecha de cierre | — |
 
 ## 1. Especificación y gobernanza
 
 - [ ] Spec, plan y tareas aprobados por el profesor y el equipo.
-- [ ] El Constitution Check del plan no tiene ❌ (constitución v1.1.0 aprobada).
+- [ ] El Constitution Check del plan no tiene ❌ (constitución v1.2.0 aprobada).
 - [ ] `README.md` en inglés y `.gitignore` DevSecOps en el primer commit (T001).
 - [ ] `verificar-constitucion` sobre la gobernanza: «Alineado» (T004).
 - [ ] Los MCP de `opencode.json` están instalados antes de codificar (`001`: T100, `002`: T200).
@@ -21,24 +21,24 @@ Lista de verificación del módulo (Art. I.4). Cada casilla lleva su evidencia. 
 
 | CA | Evidencia | Estado |
 |---|---|---|
-| CA-01 Arranque local sin nube | Salida de `dotnet run` y `curl /health` (T027) | ⏳ |
-| CA-02 404 en Problem Details | Prueba de integración (T026) | ⏳ |
-| CA-03 500 sin trazas y con correlación | Prueba de integración y línea del log (T026) | ⏳ |
-| CA-04 401 sin token | Prueba de integración (T016, T026) | ⏳ |
-| CA-05 Llave corta detiene el arranque | Prueba unitaria (T025) | ⏳ |
+| CA-01 Arranque local sin nube | `dotnet run --project src/VirGo.Api --no-restore --urls http://127.0.0.1:5180`; `curl /health` = 200 | ✅ |
+| CA-02 404 en Problem Details | `VirGo.IntegrationTests.BaseApiTests.MissingRouteReturnsProblemDetailsWithTraceId` | ✅ |
+| CA-03 500 sin trazas y con correlación | `VirGo.IntegrationTests.BaseApiTests.UnexpectedFailureReturnsSafeProblemDetails` | ✅ |
+| CA-04 401 sin token | `VirGo.IntegrationTests.BaseApiTests.ProtectedRouteWithoutTokenReturnsUnauthorizedProblemDetails` | ✅ |
+| CA-05 Llave corta detiene el arranque | `dotnet run` con `Jwt__SigningKey=short` termina con `OptionsValidationException` | ✅ |
 | CA-06 ➡️ CI bloquea la fusión | `002`: check CA-02 | ⏳ |
 | CA-07 ➡️ Despliegue con URL HTTPS | `002`: check CA-05 | ⏳ |
 | CA-08 ➡️ Solo servicios permitidos y presupuesto | `001`: check CA-03 y CA-04 | ⏳ |
-| CA-09 OpenAPI publicado | Prueba de integración y enlace entregado a Móvil (`002`: T210) | ⏳ |
+| CA-09 OpenAPI publicado | `VirGo.IntegrationTests.BaseApiTests.OpenApiIsPublished`; entrega a Móvil pendiente | 🔄 |
 | CA-10 ➡️ Borrado de la infraestructura | `001`: check CA-07 | ⏳ |
 
 ## 3. Pruebas
 
 | Tipo | Evidencia | Estado |
 |---|---|---|
-| Unitarias | `dotnet test tests/VirGo.UnitTests` · totales: — | ⏳ |
-| Integración | `dotnet test tests/VirGo.IntegrationTests` · totales: — | ⏳ |
-| Seguridad | `VirGo.SecurityTests` (`002`: T202) · totales: — | ⏳ |
+| Unitarias | `dotnet test tests/VirGo.UnitTests` · total: 2 | ✅ |
+| Integración | `dotnet test tests/VirGo.IntegrationTests` · total: 18 | ✅ |
+| Seguridad | `dotnet test tests/VirGo.SecurityTests` · total: 3; ampliación y CI en `002`: T202 | 🔄 |
 | Mutación | Stryker sobre `Domain` y `Application` (`002`: T203) · puntaje: — % | ⏳ |
 | Humo | `smoke.sh` tras el primer despliegue (`002`: T209) | ⏳ |
 | Arquitectura | Prueba de dependencias de `VirGo.Domain` (T010) | ⏳ |

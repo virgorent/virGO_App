@@ -35,6 +35,18 @@
           },
           {
             "context": "dependency review"
+          },
+          {
+            "context": "api-build-test"
+          },
+          {
+            "context": "api-iac"
+          },
+          {
+            "context": "api-schema"
+          },
+          {
+            "context": "CodeQL"
           }
         ]
       }

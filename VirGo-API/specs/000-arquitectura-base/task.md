@@ -4,10 +4,10 @@
 |---|---|
 | Módulo | `000-arquitectura-base` |
 | Versión | 1.1.0 |
-| Estado | En revisión. **Las tareas aún no se ejecutan.** |
+| Estado | Implementación local parcial; cierre pendiente de evidencias externas |
 | Fecha | 2026-10-29 |
 | Spec / Plan / Check | [spec.md](spec.md) · [plan.md](plan.md) · [check.md](check.md) |
-| Constitución | v1.1.0 |
+| Constitución | v1.2.0 |
 
 **Estados:** ⏳ Pendiente · 🔄 En curso · ✅ Hecha (con evidencia) · ⛔ Bloqueada
 
@@ -23,38 +23,38 @@
 |---|---|---|---|---|---|
 | T001 | Confirmar que `VirGo-API/` entró a `main` del repositorio `virgorent/virGO_App` con su `.gitignore` DevSecOps (Art. V.10) y su `README.md` en inglés | — | `devops-aws` | `git remote -v` muestra el repositorio; `git status` limpio tras el primer commit | ⏳ |
 | T002 | ➡️ Movida a `002-pipeline-cicd` como **T207** (ruleset `main-protection`) | — | — | — | ➡️ |
-| T003 | [P] Crear `.editorconfig` y `Directory.Build.props` (net10.0, `Nullable`, `AnalysisLevel=latest-recommended`, advertencias de seguridad como error) | T001 | `dev-dotnet` | Los archivos existen y la compilación los aplica (T006) | ⏳ |
+| T003 | [P] Crear `.editorconfig` y `Directory.Build.props` (net10.0, `Nullable`, `AnalysisLevel=latest-recommended`, advertencias de seguridad como error) | T001 | `dev-dotnet` | Los archivos existen y la compilación los aplica (T006) | ✅ Hecha |
 | T004 | [P] Revisar la alineación de `constitution.md`, `AGENTS.md`, subagentes, skills y specs con la skill `verificar-constitucion` | — | `arquitecto` | Tabla de resultados «Alineado» registrada en `memoria.md` | ⏳ |
-| T005 | [P] Agregar en la raíz del repositorio `.github/pull_request_template.md` (lista con el ID de tarea y los artículos revisados) y `.github/dependabot.yml` (NuGet semanal, Actions mensual) | T001 | `devops-aws` | Archivos en el repositorio; Dependabot aparece activo en GitHub | ⏳ |
+| T005 | [P] Agregar en la raíz del repositorio `.github/pull_request_template.md` (lista con el ID de tarea y los artículos revisados) y `.github/dependabot.yml` (NuGet semanal, Actions mensual) | T001 | `devops-aws` | Archivos creados; activación de Dependabot pendiente de GitHub | ✅ Hecha |
 
 ## F1 · Solución y capas
 
 | ID | Tarea | Depende de | Responsable | Verificación | Estado |
 |---|---|---|---|---|---|
-| T006 | Crear `VirGo.slnx` y los proyectos `VirGo.Api`, `VirGo.Application`, `VirGo.Domain` y `VirGo.Infrastructure` (.NET 10) | T003 | `dev-dotnet` | `dotnet build -c Release` termina sin errores | ⏳ |
-| T007 | Configurar las referencias según la regla de dependencias (`Api → Application, Infrastructure`; `Infrastructure → Application`; `Application → Domain`) | T006 | `dev-dotnet` | `dotnet build` OK; `Domain.csproj` sin referencias a proyectos ni paquetes | ⏳ |
-| T008 | [P] Crear `tests/VirGo.UnitTests` y `tests/VirGo.IntegrationTests` (xUnit, `Microsoft.AspNetCore.Mvc.Testing`) y agregarlos a la solución | T006 | `qa` | `dotnet test` ejecuta 0 pruebas sin errores | ⏳ |
-| T009 | `Program.cs` mínimo: controladores, `MapHealthChecks("/health")`, `MapOpenApi()`, JSON en `camelCase` y `public partial class Program` | T007 | `dev-dotnet` | `dotnet run` → `GET /health` = 200 y `GET /openapi/v1.json` = 200 | ⏳ |
-| T010 | [P] Prueba de arquitectura: `VirGo.Domain` no depende de otros ensamblados del proyecto ni de paquetes externos | T008 | `qa` | La prueba pasa y falla si se agrega una referencia indebida | ⏳ |
+| T006 | Crear `VirGo.slnx` y los proyectos `VirGo.Api`, `VirGo.Application`, `VirGo.Domain` y `VirGo.Infrastructure` (.NET 10) | T003 | `dev-dotnet` | `dotnet build -c Release` termina sin errores | ✅ Hecha |
+| T007 | Configurar las referencias según la regla de dependencias (`Api → Application, Infrastructure`; `Infrastructure → Application`; `Application → Domain`) | T006 | `dev-dotnet` | `dotnet build` OK; `Domain.csproj` sin referencias a proyectos ni paquetes | ✅ Hecha |
+| T008 | [P] Crear `tests/VirGo.UnitTests` y `tests/VirGo.IntegrationTests` (xUnit, `Microsoft.AspNetCore.Mvc.Testing`) y agregarlos a la solución | T006 | `qa` | `dotnet test` ejecuta 0 pruebas sin errores | ✅ Hecha |
+| T009 | `Program.cs` mínimo: controladores, `MapHealthChecks("/health")`, `MapOpenApi()`, JSON en `camelCase` y `public partial class Program` | T007 | `dev-dotnet` | `dotnet run` → `GET /health` = 200 y `GET /openapi/v1.json` = 200 | ✅ Hecha |
+| T010 | [P] Prueba de arquitectura: `VirGo.Domain` no depende de otros ensamblados del proyecto ni de paquetes externos | T008 | `qa` | La prueba pasa y falla si se agrega una referencia indebida | ✅ Hecha |
 
 ## F2 · Núcleo transversal
 
 | ID | Tarea | Depende de | Responsable | Verificación | Estado |
 |---|---|---|---|---|---|
-| T011 | Opciones tipadas (`Persistence`, `Jwt`, `Cors`, `RateLimiting`) con `ValidateOnStart`; la llave JWT de menos de 32 bytes detiene el arranque | T009 | `dev-dotnet` | Arrancar con una llave corta falla con un mensaje claro (CA-05) | ⏳ |
-| T012 | Manejo global de excepciones y respuestas Problem Details (404, 401, 500, validación) con `traceId` y sin trazas | T009 | `dev-dotnet` | Ruta inexistente → 404 `application/problem+json` (CA-02) | ⏳ |
-| T013 | [P] `CorrelationIdMiddleware` y logging JSON estructurado con el *scope* de correlación | T009 | `dev-dotnet` | La respuesta trae `X-Correlation-Id`; el log de consola en JSON lo incluye | ⏳ |
-| T014 | [P] `SecurityHeadersMiddleware` y política CORS `MobileAndWeb` desde la configuración | T011 | `dev-dotnet` | Los encabezados aparecen en `/health`; un origen no permitido no recibe `Access-Control-Allow-Origin` | ⏳ |
-| T015 | [P] Rate limiting global por IP configurable (429 en Problem Details) | T012 | `dev-dotnet` | Superar el límite configurado en pruebas devuelve 429 | ⏳ |
-| T016 | Autenticación JWT Bearer (emisor, audiencia, expiración y llave) y ruta `/api/v1/_diagnostics/secure` solo en el ambiente `Testing`; revisión de `seguridad` | T011, T012 | `dev-dotnet` + `seguridad` | Sin token → 401 Problem Details (CA-04); reporte de `seguridad` sin hallazgos altos | ⏳ |
+| T011 | Opciones tipadas (`Persistence`, `Jwt`, `Cors`, `RateLimiting`) con `ValidateOnStart`; la llave JWT de menos de 32 bytes detiene el arranque | T009 | `dev-dotnet` | Arrancar con una llave corta falla con un mensaje claro (CA-05) | ✅ Hecha |
+| T012 | Manejo global de excepciones y respuestas Problem Details (404, 401, 500, validación) con `traceId` y sin trazas | T009 | `dev-dotnet` | Ruta inexistente → 404 `application/problem+json` (CA-02) | ✅ Hecha |
+| T013 | [P] `CorrelationIdMiddleware` y logging JSON estructurado con el *scope* de correlación | T009 | `dev-dotnet` | La respuesta trae `X-Correlation-Id`; el log de consola en JSON lo incluye | ✅ Hecha |
+| T014 | [P] `SecurityHeadersMiddleware` y política CORS `MobileAndWeb` desde la configuración | T011 | `dev-dotnet` | Los encabezados aparecen en `/health`; un origen no permitido no recibe `Access-Control-Allow-Origin` | ✅ Hecha |
+| T015 | [P] Rate limiting global por IP configurable (429 en Problem Details) | T012 | `dev-dotnet` | Superar el límite configurado en pruebas devuelve 429 | ✅ Hecha |
+| T016 | Autenticación JWT Bearer (emisor, audiencia, expiración y llave) y ruta `/api/v1/_diagnostics/secure` solo en el ambiente `Testing`; revisión de `seguridad` | T011, T012 | `dev-dotnet` + `seguridad` | Sin token → 401 Problem Details (CA-04); reporte de `seguridad` sin hallazgos altos | 🔄 En curso |
 
 ## F3 · Persistencia base
 
 | ID | Tarea | Depende de | Responsable | Verificación | Estado |
 |---|---|---|---|---|---|
-| T017 | Abstracciones en `VirGo.Application/Abstractions` (`IRepository<T>`, `IClock`) y `Result<T>` y paginación en `Common` | T007 | `dev-dotnet` | Compila; sin referencias a AWS en Application | ⏳ |
-| T018 | [P] Implementación en memoria (`Persistence/InMemory`), segura para concurrencia | T017 | `dev-dotnet` | Pruebas unitarias del repositorio en memoria en verde (T025) | ⏳ |
-| T019 | [P] Implementación base de MongoDB (`Persistence/MongoDb`): `MongoClient` singleton, opciones (`DatabaseName`, `ConnectionString`), `MongoIndexInitializer` y selector `Persistence:Provider` en `AddInfrastructure()` | T017 | `dev-dotnet` | Con `Provider=InMemory` la app arranca sin Atlas; con `MongoDb` contra Testcontainers se conecta y crea los índices | ⏳ |
+| T017 | Abstracciones en `VirGo.Application/Abstractions` (`IRepository<T>`, `IClock`) y `Result<T>` y paginación en `Common` | T007 | `dev-dotnet` | Compila; sin referencias a AWS en Application | ✅ Hecha |
+| T018 | [P] Implementación en memoria (`Persistence/InMemory`), segura para concurrencia | T017 | `dev-dotnet` | Pruebas unitarias del repositorio en memoria en verde (T025) | ✅ Hecha |
+| T019 | [P] Implementación base de MongoDB (`Persistence/MongoDb`): `MongoClient` singleton, opciones (`DatabaseName`, `ConnectionString`), repositorios y selector `Persistence:Provider` en `AddInfrastructure()`; sin DDL al arrancar | T017 | `dev-dotnet` | Con `Provider=InMemory` la app arranca sin Atlas; con `MongoDb` se conecta al contrato existente sin crear colecciones ni índices | 🔄 En curso |
 
 ## F4 · Alojamiento en Lambda e infraestructura ➡️ `001-infraestructura-iac`
 
@@ -71,8 +71,8 @@
 | ID | Tarea | Depende de | Responsable | Verificación | Estado |
 |---|---|---|---|---|---|
 | T025 | [P] Pruebas unitarias: validación de opciones (llave corta, orígenes vacíos en producción) y repositorio en memoria | T011, T018 | `qa` | `dotnet test tests/VirGo.UnitTests` en verde | ⏳ |
-| T026 | [P] Pruebas de integración: `/health` 200; 404, 401 y 500 en Problem Details sin trazas; encabezados de seguridad; `X-Correlation-Id`; 429; `/openapi/v1.json` 200 | T012–T016 | `qa` | `dotnet test tests/VirGo.IntegrationTests` en verde (CA-02, CA-03, CA-04, CA-09) | ⏳ |
-| T027 | Prueba de arranque local con un solo comando y sin AWS (CA-01, RNF-07) | T019, T026 | `qa` | `dotnet run --project src/VirGo.Api` → `/health` 200 con `Provider=InMemory` | ⏳ |
+| T026 | [P] Pruebas de integración: `/health` 200; 404, 401 y 500 en Problem Details sin trazas; encabezados de seguridad; `X-Correlation-Id`; 429; `/openapi/v1.json` 200 | T012–T016 | `qa` | `dotnet test tests/VirGo.IntegrationTests` en verde (CA-02, CA-03, CA-04, CA-09) | ✅ Hecha |
+| T027 | Prueba de arranque local con un solo comando y sin AWS (CA-01, RNF-07) | T019, T026 | `qa` | `dotnet run --project src/VirGo.Api` → `/health` 200 con `Provider=InMemory` | ✅ Hecha |
 
 ## F6 · CI/CD y entrega de la URL HTTPS ➡️ `002-pipeline-cicd`
 

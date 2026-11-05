@@ -2,7 +2,7 @@
 
 REST API for **VirGo**, a platform that connects people organizing an event with venues and service providers. This folder of the [`virGO_App`](https://github.com/virgorent/virGO_App) repository contains only the backend; the Android app lives in `../VirGo-Movil`.
 
-> **Status:** specification phase. The architecture, infrastructure, pipeline and first endpoint specs are written and under review. There is no application code yet.
+> **Status:** local implementation of the architecture, infrastructure, pipeline and seven-endpoint vertical slice. Cloud validation and deployment remain pending.
 
 ## Tech stack
 
@@ -16,7 +16,7 @@ REST API for **VirGo**, a platform that connects people organizing an event with
 | Infrastructure as Code | AWS SAM / CloudFormation |
 | CI/CD | GitHub Actions with OIDC to AWS: CI on every PR, manual deploy |
 | Security (DevSecOps) | CodeQL, Semgrep, SonarCloud, OWASP ZAP, Dependabot, dependency review, Gitleaks, Checkov, GitHub rulesets |
-| Tests | xUnit (unit, integration, security), Testcontainers for MongoDB repositories, Stryker.NET (mutation), smoke tests after deploy |
+| Tests | xUnit (unit, integration, security), Stryker.NET (mutation), smoke tests after deploy |
 
 ## Architecture
 
@@ -37,13 +37,14 @@ VirGo-API/
 ├── constitution.md   # Project rules (Spanish). Everything else must align with it
 ├── AGENTS.md         # Guide for AI agents and contributors
 ├── memoria.md        # Project log: decisions (ADR), costs, contract changes
+├── API-HANDOFF.md      # Versioned API and persistence contract snapshot
 ├── opencode.json     # Approved MCP servers
 ├── .opencode/        # Sub-agents and internal skills
 ├── specs/            # One folder per module: spec.md, plan.md, task.md, check.md
-├── src/              # (planned) VirGo.Api, VirGo.Application, VirGo.Domain, VirGo.Infrastructure
-├── tests/            # (planned) Unit, Integration, Security, smoke
+├── src/              # VirGo.Api, VirGo.Application, VirGo.Domain, VirGo.Infrastructure
+├── tests/            # Unit, Integration, Security, smoke
 ├── db/               # MongoDB schema (source of truth) and check tool
-├── infra/            # (planned) SAM template and bootstrap stack
+├── infra/            # SAM template and bootstrap stack
 ```
 
 GitHub workflows live in `.github/` at the repository root (`api-*`, `movil-*` and `security.yml`). Commands below run inside `VirGo-API/`.
@@ -57,19 +58,31 @@ The project follows **Spec-Driven Development**: no code without an approved spe
 | [`000-arquitectura-base`](specs/000-arquitectura-base/spec.md) | Solution layers, errors, configuration, base security, persistence | In review |
 | [`001-infraestructura-iac`](specs/001-infraestructura-iac/spec.md) | AWS infrastructure as code, HTTPS URL, $0 cost | Draft |
 | [`002-pipeline-cicd`](specs/002-pipeline-cicd/spec.md) | CI with DevSecOps checks, rulesets, manual CD, smoke tests | Draft |
-| [`003-auth-login`](specs/003-auth-login/spec.md) | `POST /api/v1/auth/login` | Draft |
-| [`004-auth-logout`](specs/004-auth-logout/spec.md) | `POST /api/v1/auth/logout` | Draft |
+| [`003-auth-login`](specs/003-auth-login/spec.md) | `POST /api/v1/auth/login` | Local |
+| [`004-auth-logout`](specs/004-auth-logout/spec.md) | `POST /api/v1/auth/logout` | Local |
+| [`005-auth-register`](specs/005-auth-register/spec.md) | `POST /api/v1/auth/register` | Local |
+| [`006-users-me`](specs/006-users-me/spec.md) | `GET /api/v1/users/me` | Local |
+| [`007-venues-catalog`](specs/007-venues-catalog/spec.md) | `GET /api/v1/venues` | Local |
+| [`008-quotes-create`](specs/008-quotes-create/spec.md) | `POST /api/v1/quotes` | Local |
+| [`009-bookings-create`](specs/009-bookings-create/spec.md) | `POST /api/v1/bookings` | Local |
 | [`007-esquema-mongodb`](specs/007-esquema-mongodb/spec.md) | MongoDB schema as the single source of truth | Draft |
 
 ## Getting started
 
-These commands will work once module `000` is implemented:
+Run these commands from `VirGo-API/`:
 
 ```bash
 dotnet restore
 dotnet build -c Release --no-restore
 dotnet test -c Release --no-build
 dotnet run --project src/VirGo.Api     # http://localhost:5080, in-memory persistence, no AWS needed
+```
+
+For local execution, provide a development-only JWT signing key through the environment; production reads it from SSM:
+
+```powershell
+$env:Jwt__SigningKey = "set-a-local-value-with-at-least-32-characters"
+dotnet run --project src/VirGo.Api
 ```
 
 Mutation tests: `dotnet tool restore && dotnet stryker`.

@@ -52,13 +52,25 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Sin cambios en manifiestos de dependencias; se omite dependency review."
           fi
-      - name: Checkout
+      - name: Check dependency graph
+        id: graph
         if: steps.deps.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/dependency-graph/sbom" >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Dependency graph no está habilitado; se omite dependency review hasta activarlo."
+          fi
+      - name: Checkout
+        if: steps.deps.outputs.changed == 'true' && steps.graph.outputs.enabled == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Dependency review
-        if: steps.deps.outputs.changed == 'true'
+        if: steps.deps.outputs.changed == 'true' && steps.graph.outputs.enabled == 'true'
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: high

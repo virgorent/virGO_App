@@ -4,10 +4,10 @@
 |---|---|
 | Módulo | `001-infraestructura-iac` |
 | Versión | 1.0.0 |
-| Estado | Borrador. **Las tareas aún no se ejecutan.** |
+| Estado | Implementación local parcial; tareas externas pendientes |
 | Fecha | 2026-11-03 |
 | Spec / Plan / Check | [spec.md](spec.md) · [plan.md](plan.md) · [check.md](check.md) |
-| Constitución | v1.1.0 |
+| Constitución | v1.2.0 |
 
 **Estados:** ⏳ Pendiente · 🔄 En curso · ✅ Hecha (con evidencia) · ⛔ Bloqueada
 
@@ -29,9 +29,9 @@
 
 | ID | Tarea | Depende de | Responsable | Verificación | Estado |
 |---|---|---|---|---|---|
-| T102 | [P] `infra/bootstrap.yaml`: proveedor OIDC, rol `virgo-github-deploy` (condiciones de la sección 6.2 del plan) y presupuesto de $1 USD con correo | — | `devops-aws` | `cfn-lint infra/bootstrap.yaml` sin errores | ⏳ |
-| T103 | [P] `infra/template.yaml`: HTTP API (throttling 20/40, CORS), Lambda 512 MB, LogGroup de 7 días, tema SNS, alarmas `Api5xxAlarm` y `LambdaErrorsAlarm`, parámetros de la llave JWT y de la cadena de Mongo, y salida `ApiUrl` | T110 | `devops-aws` | `sam validate --lint` sin errores | ⏳ |
-| T104 | Registrar en `memoria.md` la tabla de costo estimado de los 12 servicios, incluido Atlas M0 (Art. VII.5) | T101, T102, T103 | `devops-aws` | Entrada con total $0 | ⏳ |
+| T102 | [P] `infra/bootstrap.yaml`: proveedor OIDC, rol `virgo-github-deploy` (condiciones de la sección 6.2 del plan) y presupuesto de $1 USD con correo | — | `devops-aws` | `cfn-lint infra/bootstrap.yaml` sin errores | 🔄 En curso |
+| T103 | [P] `infra/template.yaml`: HTTP API (throttling 20/40, CORS), Lambda 512 MB, LogGroup de 7 días, tema SNS, alarmas `Api5xxAlarm` y `LambdaErrorsAlarm`, parámetros de la llave JWT y de la cadena de Mongo, y salida `ApiUrl` | T110 | `devops-aws` | `sam validate --lint` sin errores | 🔄 En curso |
+| T104 | Registrar en `memoria.md` la tabla de costo estimado de los 12 servicios, incluido Atlas M0 (Art. VII.5) | T101, T102, T103 | `devops-aws` | Entrada con total $0 | ✅ Hecha |
 
 ## F2 · Seguridad y validación
 

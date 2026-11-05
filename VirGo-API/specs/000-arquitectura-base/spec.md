@@ -6,7 +6,7 @@
 | Versión | 1.1.0 |
 | Estado | En revisión |
 | Fecha | 2026-10-29 |
-| Constitución | v1.1.0. Aplica todos los artículos; sobre todo II, III, IV, V, VII y VIII |
+| Constitución | v1.2.0. Aplica todos los artículos; sobre todo II, III, IV, V, VII y VIII |
 | Plan | [plan.md](plan.md) · Tareas: [task.md](task.md) · Verificación: [check.md](check.md) |
 
 ## 1. Contexto y objetivo

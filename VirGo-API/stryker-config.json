@@ -1,0 +1,17 @@
+{
+  "stryker-config": {
+    "solution": "VirGo.slnx",
+    "project": "src/VirGo.Application/VirGo.Application.csproj",
+    "test-projects": [
+      "tests/VirGo.UnitTests/VirGo.UnitTests.csproj"
+    ],
+    "mutate": [
+      "**/*.cs"
+    ],
+    "reporters": [
+      "progress",
+      "html",
+      "json"
+    ]
+  }
+}

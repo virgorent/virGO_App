@@ -5,7 +5,7 @@ Lista de verificación del módulo (Art. I.4). Se llena conforme avanzan las tar
 | Campo | Valor |
 |---|---|
 | Módulo | `001-infraestructura-iac` |
-| Estado del spec | Borrador |
+| Estado del spec | Implementación local; validación y despliegue pendientes |
 | Revisó | — |
 | Fecha de cierre | — |
 

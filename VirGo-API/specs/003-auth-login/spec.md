@@ -5,12 +5,12 @@
 | Módulo | `003-auth-login` |
 | Endpoint | `POST /api/v1/auth/login` |
 | Versión | 1.0.0 |
-| Estado | Borrador. **Se redacta para dar contexto; no se ejecuta hasta cerrar `000`, `001` y `002` (Art. II.2).** |
+| Estado | Implementación local; despliegue pendiente |
 | Fecha | 2026-11-03 |
-| Constitución | v1.1.0. Aplica sobre todo IV, V y VI |
+| Constitución | v1.2.0. Aplica sobre todo IV, V y VI |
 | Plan | [plan.md](plan.md) · Tareas: [task.md](task.md) · Verificación: [check.md](check.md) |
 | Pantallas | A4 «Iniciar sesión» y A5 (sesión persistente) del checklist de VirGo |
-| Datos | Colecciones `users` y `sessions` de *Modelo de datos VirGo.md* (sección 4.1, MongoDB) |
+| Datos | Colecciones `users` y `sessions` de `db/schema/` y `API-HANDOFF.md`; `VirGo-Database` es la autoridad ejecutable |
 
 ## 1. Contexto y objetivo
 

@@ -1,0 +1,128 @@
+name: API CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.detect.outputs.api }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - id: detect
+        shell: bash
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+            if [[ "$base" == "0000000000000000000000000000000000000000" ]]; then
+              base="$(git rev-list --max-parents=0 HEAD)"
+            fi
+          fi
+          if git diff --name-only "$base" "$GITHUB_SHA" | grep -qE '^(VirGo-API/|\.github/workflows/api-|\.github/dependabot\.yml|\.github/pull_request_template\.md|\.github/rulesets/)'; then
+            echo 'api=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'api=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  api-build-test:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: VirGo-API
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore
+        run: dotnet restore VirGo.slnx
+      - name: Build
+        run: dotnet build VirGo.slnx -c Release --no-restore -warnaserror
+      - name: Test
+        run: dotnet test VirGo.slnx -c Release --no-build --logger trx
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: api-test-results
+          path: VirGo-API/**/TestResults/**/*.trx
+
+  api-mutation:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: VirGo-API
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Run mutation tests
+        run: dotnet stryker --config-file stryker-config.json
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: api-mutation-report
+          path: VirGo-API/StrykerOutput/
+
+  api-iac:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: VirGo-API
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@341eee193f458fa5aae5d52c94b0c5cf3a1c5a52
+        with:
+          use-installer: true
+      - name: Install IaC linters
+        run: python -m pip install cfn-lint checkov
+      - name: Validate SAM
+        run: sam validate --template-file infra/template.yaml --lint
+      - name: Validate CloudFormation
+        run: cfn-lint infra/bootstrap.yaml infra/template.yaml
+      - name: Checkov
+        run: checkov -d infra --config-file infra/.checkov.yaml
+
+  api-schema:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: VirGo-API
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Validate schema files
+        run: python db/tools/check_schema.py

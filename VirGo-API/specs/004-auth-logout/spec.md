@@ -5,12 +5,12 @@
 | Módulo | `004-auth-logout` |
 | Endpoint | `POST /api/v1/auth/logout` |
 | Versión | 1.0.0 |
-| Estado | Borrador. **Se redacta para dar contexto; no se ejecuta hasta cerrar `003` (Art. II.2).** |
+| Estado | Implementación local; despliegue pendiente |
 | Fecha | 2026-11-03 |
-| Constitución | v1.1.0. Aplica sobre todo IV, V y VI |
+| Constitución | v1.2.0. Aplica sobre todo IV, V y VI |
 | Plan | [plan.md](plan.md) · Tareas: [task.md](task.md) · Verificación: [check.md](check.md) |
 | Pantallas | «Cerrar sesión» del perfil (C39) y de los menús de propietario y proveedor |
-| Datos | Colección `sessions` de *Modelo de datos VirGo.md* (sección 4.1, MongoDB) |
+| Datos | Colección `sessions` del contrato `API-HANDOFF.md` (secciones 4.4 y 9.2); `VirGo-Database` es la autoridad ejecutable |
 
 ## 1. Contexto y objetivo
 
@@ -31,7 +31,7 @@ El objetivo es que cerrar sesión invalide la sesión del dispositivo en el serv
 | ID | Requerimiento |
 |---|---|
 | RF-01 | Solo una persona con una credencial de acceso válida puede cerrar sesión. |
-| RF-02 | Cerrar sesión marca como revocada **solo** la sesión a la que pertenece la credencial usada, con la fecha y hora. |
+| RF-02 | Cerrar sesión elimina **solo** la sesión a la que pertenece la credencial usada. |
 | RF-03 | Después de cerrar sesión, cualquier solicitud a una ruta protegida con la credencial de esa sesión es rechazada, aunque no haya expirado. |
 | RF-04 | La credencial de sesión de larga duración de esa sesión tampoco vuelve a servir. |
 | RF-05 | Las demás sesiones de la persona no cambian. |
@@ -50,7 +50,7 @@ El objetivo es que cerrar sesión invalide la sesión del dispositivo en el serv
 
 | ID | Criterio |
 |---|---|
-| CA-01 | **Dado** una sesión abierta, **cuando** la persona cierra sesión, **entonces** recibe 204 sin cuerpo y la sesión queda revocada con su fecha. |
+| CA-01 | **Dado** una sesión abierta, **cuando** la persona cierra sesión, **entonces** recibe 204 sin cuerpo y el documento de esa sesión deja de existir. |
 | CA-02 | **Dado** una sesión cerrada, **cuando** se usa su credencial de acceso en cualquier ruta protegida (incluido el mismo logout), **entonces** se recibe 401 en Problem Details. |
 | CA-03 | **Dado** una persona con dos sesiones, **cuando** cierra una, **entonces** la otra sigue funcionando. |
 | CA-04 | **Dado** una solicitud sin credencial o con una inválida, **cuando** intenta cerrar sesión, **entonces** recibe 401 en Problem Details. |

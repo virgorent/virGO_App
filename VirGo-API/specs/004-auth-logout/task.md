@@ -4,10 +4,10 @@
 |---|---|
 | Módulo | `004-auth-logout` |
 | Versión | 1.0.0 |
-| Estado | Borrador. **No se ejecuta hasta cerrar `003` (Art. II.2).** |
+| Estado | Implementación local; despliegue pendiente |
 | Fecha | 2026-11-03 |
 | Spec / Plan / Check | [spec.md](spec.md) · [plan.md](plan.md) · [check.md](check.md) |
-| Constitución | v1.1.0 |
+| Constitución | v1.2.0 |
 
 **Estados:** ⏳ Pendiente · 🔄 En curso · ✅ Hecha (con evidencia) · ⛔ Bloqueada
 
@@ -27,16 +27,16 @@
 
 | ID | Tarea | Depende de | Responsable | Verificación | Estado |
 |---|---|---|---|---|---|
-| T401 | `Session.Revoke(now)` y `LogoutCommand`/`LogoutHandler` (sección 6.2 del plan); actualización condicional en los repositorios en memoria y MongoDB | T400 | `dev-dotnet` | Pruebas unitarias de T404 en verde | ⏳ |
-| T402 | `SessionValidator` y `JwtSessionEvents.OnTokenValidated` (sección 6.3) | T400 | `dev-dotnet` + `seguridad` | Un JWT sin `sid` recibe 401 en la ruta de diagnóstico | ⏳ |
-| T403 | `AuthController.Logout` (`[Authorize]`, 204) y documentación en OpenAPI | T401, T402 | `dev-dotnet` | `dotnet run` → login, logout = 204, mismo token = 401 | ⏳ |
+| T401 | Eliminación de la sesión y `LogoutCommand`/`LogoutHandler` (sección 6.2 del plan); eliminación en los repositorios en memoria y MongoDB | T400 | `dev-dotnet` | Pruebas unitarias de T404 en verde | ✅ Hecha |
+| T402 | `SessionValidator` y `JwtSessionEvents.OnTokenValidated` (sección 6.3) | T400 | `dev-dotnet` + `seguridad` | Un JWT sin `sid` recibe 401 en la ruta de diagnóstico | ✅ Hecha |
+| T403 | `AuthController.Logout` (`[Authorize]`, 204) y documentación en OpenAPI | T401, T402 | `dev-dotnet` | `dotnet run` → login, logout = 204, mismo token = 401 | ✅ Hecha |
 
 ## F2 · Pruebas
 
 | ID | Tarea | Depende de | Responsable | Verificación | Estado |
 |---|---|---|---|---|---|
-| T404 | Pruebas unitarias e integración de la sección 8 del plan | T403 | `qa` | `dotnet test` en verde (CA-01 a CA-05) | ⏳ |
-| T405 | Pruebas de seguridad, mutación y caso nuevo en `smoke.sh`; revisión de `seguridad` | T404 | `qa` + `seguridad` | `VirGo.SecurityTests` en verde; mutación ≥ umbral; sin hallazgos altos | ⏳ |
+| T404 | Pruebas unitarias e integración de la sección 8 del plan | T403 | `qa` | `dotnet test` en verde (CA-01 a CA-05) | 🔄 En curso |
+| T405 | Pruebas de seguridad, mutación y caso nuevo en `smoke.sh`; revisión de `seguridad` | T404 | `qa` + `seguridad` | `VirGo.SecurityTests` en verde; mutación ≥ umbral; sin hallazgos altos | 🔄 En curso |
 
 ## F3 · PR, despliegue y entrega
 

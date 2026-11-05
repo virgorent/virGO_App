@@ -5,7 +5,7 @@ Lista de verificación del módulo (Art. I.4). Cada casilla lleva su evidencia. 
 | Campo | Valor |
 |---|---|
 | Módulo | `004-auth-logout` · `POST /api/v1/auth/logout` |
-| Estado del spec | Borrador |
+| Estado del spec | Implementación local; despliegue pendiente |
 | Revisó | — |
 | Fecha de cierre | — |
 
@@ -20,21 +20,21 @@ Lista de verificación del módulo (Art. I.4). Cada casilla lleva su evidencia. 
 
 | CA | Evidencia | Estado |
 |---|---|---|
-| CA-01 204 y sesión revocada | Prueba de integración y consulta con el MCP `mongodb` | ⏳ |
-| CA-02 Token de sesión cerrada → 401 en toda la API | Prueba de integración | ⏳ |
-| CA-03 La otra sesión sigue funcionando | Prueba de integración | ⏳ |
-| CA-04 Sin token o inválido → 401 | Prueba de seguridad | ⏳ |
-| CA-05 Token sin `sid` → 401 | Prueba de seguridad | ⏳ |
+| CA-01 204 y documento de sesión eliminado | `AuthTests.LoginThenLogoutInvalidatesOnlyThatSession` | ✅ |
+| CA-02 Token de sesión cerrada → 401 en toda la API | `AuthTests.LoginThenLogoutInvalidatesOnlyThatSession` | ✅ |
+| CA-03 La otra sesión sigue funcionando | `AuthTests.LogoutKeepsASecondSessionActive` | ✅ |
+| CA-04 Sin token o inválido → 401 | `BaseApiTests.ProtectedRouteWithoutTokenReturnsUnauthorizedProblemDetails` | ✅ |
+| CA-05 Token sin `sid` → 401 | `JwtSecurityTests.TokenWithoutSessionIdIsRejected` | ✅ |
 | CA-06 Humo 401 por HTTPS | Resumen de `api-deploy.yml` | ⏳ |
 
 ## 3. Pruebas
 
 | Tipo | Evidencia | Estado |
 |---|---|---|
-| Unitarias | Totales: — | ⏳ |
-| Integración | Totales: — | ⏳ |
-| Seguridad | Totales: — · Revisión de `seguridad` sin hallazgos altos | ⏳ |
-| Mutación | Puntaje: — % (umbral — %) | ⏳ |
+| Unitarias | Cubiertas por el proyecto base; casos específicos pendientes | 🔄 |
+| Integración | Incluidas en las 12 pruebas aprobadas | ✅ |
+| Seguridad | 3 aprobadas · revisión de `seguridad` pendiente | 🔄 |
+| Mutación | Línea base general: 36.36 % · umbral provisional 0 % | 🔄 |
 | Humo | Caso de logout en `smoke.sh` en verde | ⏳ |
 | Validación de longitudes | ➖ Sin cuerpo; `Authorization` de 1500 caracteres da 401 | ⏳ |
 

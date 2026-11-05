@@ -4,10 +4,10 @@
 |---|---|
 | Módulo | `003-auth-login` |
 | Versión | 1.0.0 |
-| Estado | Borrador |
+| Estado | Implementación local; despliegue pendiente |
 | Fecha | 2026-11-03 |
 | Spec | [spec.md](spec.md) · Tareas: [task.md](task.md) · Verificación: [check.md](check.md) |
-| Constitución | v1.1.0 |
+| Constitución | v1.2.0 |
 
 ## 1. Resumen técnico
 
@@ -63,7 +63,7 @@ tests/VirGo.SecurityTests/Auth/LoginSecurityTests.cs  tests/smoke/smoke.sh (caso
 |---|---|---|---|
 | ADR-17 | `PasswordHasher<T>` de Identity (PBKDF2) | Argon2 con un paquete externo; BCrypt | Viene en el SDK, mantenido por Microsoft, sin dependencias nativas en Lambda |
 | ADR-18 | Acceso JWT de 15 min + token de sesión opaco de 30 días con huella SHA-256 y `sid` en el JWT | Un solo JWT largo | Un token robado dura poco y la sesión se puede revocar (`004`) |
-| ADR-19 | Bloqueo por cuenta guardado en el documento de `users` (`failedLoginCount`, `lockoutEndsAt`) | Solo límite en memoria | En Lambda cada instancia tiene su memoria; la base es la única fuente de verdad |
+| ADR-19 | Aplicar el límite de login por IP mediante el rate limiter común | Guardar contadores en `users` | El esquema existente no contiene campos de bloqueo; el bloqueo persistente requiere un spec posterior y una decisión de producto |
 
 ## 6. Diseño
 
@@ -75,7 +75,6 @@ tests/VirGo.SecurityTests/Auth/LoginSecurityTests.cs  tests/smoke/smoke.sh (caso
 {
   "email": "ana@ejemplo.mx",
   "password": "********",
-  "device": "Android 14 · Pixel 7"
 }
 ```
 
@@ -83,7 +82,6 @@ tests/VirGo.SecurityTests/Auth/LoginSecurityTests.cs  tests/smoke/smoke.sh (caso
 |---|---|
 | `email` | Obligatorio, formato de correo, máximo 150 caracteres |
 | `password` | Obligatorio, de 1 a 128 caracteres |
-| `device` | Opcional, máximo 100 caracteres |
 
 **200 OK**
 
@@ -121,10 +119,9 @@ tests/VirGo.SecurityTests/Auth/LoginSecurityTests.cs  tests/smoke/smoke.sh (caso
 
 1. Normalizar el correo (`Trim`, `ToLowerInvariant`).
 2. Buscar por correo. Si no existe, verificar la contraseña contra una huella ficticia fija (para igualar el tiempo) y devolver `InvalidCredentials`.
-3. Si `lockoutEndsAt > now`, devolver `LockedOut`.
-4. Verificar la contraseña. Si falla: `failedLoginCount++`; si llega a 5, `lockoutEndsAt = now + 15 min` y contador en 0; guardar; devolver `InvalidCredentials`.
-5. Si `PasswordVerificationResult.SuccessRehashNeeded`, actualizar la huella.
-6. Reiniciar el contador, crear la `Session` (expira en 30 días), emitir el JWT y devolver el resultado.
+3. Verificar la contraseña con el hasher configurado; si falla, devolver `InvalidCredentials` sin revelar si el correo existe.
+4. Si `PasswordVerificationResult.SuccessRehashNeeded`, actualizar la huella.
+5. Crear la `Session` (expira en 30 días), emitir el JWT y devolver el resultado.
 
 ### 6.4 Colecciones de MongoDB (base `virgo`)
 
@@ -138,8 +135,6 @@ tests/VirGo.SecurityTests/Auth/LoginSecurityTests.cs  tests/smoke/smoke.sh (caso
   "phone": "+524421234567",
   "passwordHash": "AQAAAAIAAYagAAAAE...",
   "role": "client",
-  "failedLoginCount": 0,
-  "lockoutEndsAt": null,
   "createdAt": "2026-11-03T18:00:00Z",
   "updatedAt": "2026-11-03T18:00:00Z"
 }
@@ -152,9 +147,7 @@ tests/VirGo.SecurityTests/Auth/LoginSecurityTests.cs  tests/smoke/smoke.sh (caso
   "_id": "5f1d2c3b-4a59-4e6f-8a7b-9c0d1e2f3a4b",
   "userId": "0b6c5d7e-2f1a-4c3b-9e8d-7a6b5c4d3e2f",
   "tokenHash": "3q2+7w...SHA-256 en Base64",
-  "device": "Android 14 · Pixel 7",
   "expiresAt": "2026-12-03T18:00:00Z",
-  "revokedAt": null,
   "createdAt": "2026-11-03T18:00:00Z",
   "purgeAt": "2026-12-10T18:00:00Z"
 }
@@ -167,7 +160,7 @@ tests/VirGo.SecurityTests/Auth/LoginSecurityTests.cs  tests/smoke/smoke.sh (caso
 | `sessions` | `{ tokenHash: 1 }` **único** | Renovar la sesión (`006`) sin duplicados |
 | `sessions` | `{ purgeAt: 1 }` con `expireAfterSeconds: 0` (TTL) | MongoDB borra la sesión 7 días después de expirar (ADR-11) |
 
-Los nombres de campo van en inglés y `camelCase` (Art. XII.2); equivalen a las columnas en español del modelo de datos. `AuthIndexes` registra estos índices en el `MongoIndexInitializer` de `000`, así que la base `virgo` y sus colecciones se crean solas con el primer login en la nube.
+Los nombres de campo van en inglés y `camelCase` (Art. XII.2), según `API-HANDOFF.md`. Los índices y validadores ya existen por el contrato administrado por `VirGo-Database`; la API no ejecuta DDL durante el login ni al arrancar.
 
 ### 6.5 Persona sembrada
 

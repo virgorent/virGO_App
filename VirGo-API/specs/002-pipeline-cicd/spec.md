@@ -4,9 +4,9 @@
 |---|---|
 | Módulo | `002-pipeline-cicd` |
 | Versión | 1.0.0 |
-| Estado | Borrador |
+| Estado | Implementación local; ejecución en GitHub pendiente |
 | Fecha | 2026-11-03 |
-| Constitución | v1.1.0. Aplica sobre todo V, VI, VIII y XI |
+| Constitución | v1.2.0. Aplica sobre todo V, VI, VIII y XI |
 | Plan | [plan.md](plan.md) · Tareas: [task.md](task.md) · Verificación: [check.md](check.md) |
 | Origen | Se separó de `000-arquitectura-base` (antes T002, F6 y T032) para que el pipeline sea un spec atómico (Art. I.5) |
 
